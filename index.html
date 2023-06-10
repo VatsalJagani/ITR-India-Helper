@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITR India - Utilities</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .TopLevelBody {
+            justify-content: center;
+            display: flex;
+        }
+
+        .MainContainer {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 5px;
+        }
+
+        .block {
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        #questionBlock {
+            background-color: #f2f2f2;
+        }
+
+        #resultBlock {
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        select {
+            width: 90%;
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <h1>Utility to choose between different ITR Forms</h1>
+    <p>(Only for Individuals residing in India)</p>
+    <div class="TopLevelBody">
+        <div class="MainContainer">
+            <div id="questionBlock" class="block">
+                <div class="question">
+                    <label for="total_income">Annual Total Income Slab</label>
+                    <select id="total_income">
+                        <option value="">Select</option>
+                        <option value="below_50_lakhs">Below 50 lakhs</option>
+                        <option value="above_50_lakhs">Above 50 lakhs</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="is_capital_income">Do you have any capital income? (From Mutual Funds, Stock Market
+                        Investment/Trading, etc) (Short term or long term)?</label>
+                    <select id="is_capital_income">
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="question" id="_is_intra_day" style="display: none;">
+                    <label for="is_intra_day">Do you do intra-day trading in stock market?</label>
+                    <select id="is_intra_day">
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="is_professional">Do you have Income from Professional Work (Freelancing) or Business
+                        under 44AD, 44ADA or 44AE?</label>
+                    <select id="is_professional">
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="is_partner_in_firm">Are you a partner in any firm?</label>
+                    <select id="is_partner_in_firm">
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="is_director">Are you a director of a company?</label>
+                    <select id="is_director">
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="type_of_crypto_income">Do you have a crypto income?</label>
+                    <select id="type_of_crypto_income">
+                        <option value="">Select</option>
+                        <option value="No">No</option>
+                        <option value="Yes, reported as capital income">Yes, reported as capital income</option>
+                        <option value="Yes, reported as business income">Yes, reported as business income</option>
+                    </select>
+                </div>
+                <div class="question" style="display: none;"> <!-- For now its not needed, hence hidden-->
+                    <label for="is_presumed_income">Individual or firm having presumed income?</label>
+                    <select id="is_presumed_income">
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="resultBlock" class="block">
+                <h3>You should file ITR form number: <b><span id="itrNumber"></span></b></h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setResult(formNo) {
+            $('#itrNumber').text(formNo);
+            $('#resultBlock').show()
+        }
+
+        function generateAnswerIfPossible() {
+            let total_income = $('#total_income').val();
+            let is_capital_income = $('#is_capital_income').val();
+            let is_intra_day = $('#is_intra_day').val()
+            let is_professional = $('#is_professional').val();
+            let is_partner_in_firm = $('#is_partner_in_firm').val();
+            let is_director = $('#is_director').val();
+            let type_of_crypto_income = $('#type_of_crypto_income').val();
+            // let is_presumed_income = $('#is_presumed_income').val();
+
+            if (total_income !== "" && is_director !== "" && is_capital_income !== "" &&
+                is_professional !== "" && is_partner_in_firm !== "" && type_of_crypto_income !== "") {
+                // is_presumed_income!==""){
+                if (is_capital_income === "Yes" && is_intra_day === "") {
+                    return;
+                }
+
+                if (total_income === "above_50_lakhs") {
+                    // ITR-2, ITR-3
+                    if (is_professional === "Yes" || is_partner_in_firm === "Yes") {
+                        setResult('ITR-3 (Mandatory to file Schedule AL)');
+                        return;
+                    }
+                    setResult('ITR-2 (Mandatory to file Schedule AL)');
+                    return;
+                }
+                else {
+                    // ITR-1, ITR-2, ITR-3, ITR-4
+                    if (is_professional === "Yes") {
+                        // ITR-3, ITR-4
+                        if (is_capital_income === "Yes" || type_of_crypto_income.startsWith("Yes")) {
+                            setResult("ITR-3");
+                            return;
+                        }
+                        setResult("ITR-4");
+                        return;
+                    }
+                    if (is_partner_in_firm === "Yes") {
+                        setResult("ITR-3");
+                        return;
+                    }
+                    if (type_of_crypto_income.startsWith("Yes")) {
+                        // ITR-2, ITR-3
+                        if (type_of_crypto_income === "Yes, reported as business income") {
+                            setResult("ITR-3");
+                            return;
+                        }
+                        setResult("ITR-2");
+                        return;
+                    }
+                    if (is_capital_income === "Yes") {
+                        if (is_intra_day === "Yes") {
+                            setResult("ITR-3");
+                            return;
+                        }
+                        setResult("ITR-2");
+                        return;
+                    }
+                    if (is_director === "Yes") {
+                        setResult("ITR-2");
+                        return;
+                    }
+                    setResult("ITR-1");
+                }
+
+            }
+        }
+
+        $('#is_capital_income').change(function () {
+            if ($(this).val() === 'Yes') {
+                $("#_is_intra_day").show();
+            } else {
+                $("#_is_intra_day").hide();
+            }
+        });
+
+        $('#total_income').change(function () {
+            generateAnswerIfPossible();
+        });
+        $('#is_capital_income').change(function () {
+            generateAnswerIfPossible();
+        });
+        $('#is_intra_day').change(function () {
+            generateAnswerIfPossible();
+        });
+        $('#is_professional').change(function () {
+            generateAnswerIfPossible();
+        });
+        $('#is_partner_in_firm').change(function () {
+            generateAnswerIfPossible();
+        });
+        $('#is_director').change(function () {
+            generateAnswerIfPossible();
+        });
+        $('#type_of_crypto_income').change(function () {
+            generateAnswerIfPossible();
+        });
+    </script>
+</body>
+
+</html>
+<!-- Reference - https://cleartax.in/s/which-itr-to-file-->
